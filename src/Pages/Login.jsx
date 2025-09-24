@@ -71,14 +71,47 @@ export const Login = () => {
               window.location.href = "/";
             }, 1500);
           } else {
-            document.querySelector("#loginMesageSuccess").innerHTML = "";
-            document.querySelector("#loginMesageError").innerHTML = "User profile not found.";
+            // User exists in Firebase but not in our local system
+            // Create a basic user profile for them
+            console.log("User exists in Firebase but not in local system, creating profile...");
+            const basicUserData = {
+              email: email,
+              user_name: userCredential.user.displayName || email.split('@')[0],
+              number: "",
+              password: "", // Don't store password
+              dob: "",
+              gender: "",
+              marital_status: null,
+            };
+
+            dispatch(login_user(basicUserData));
+            document.querySelector("#loginMesageSuccess").innerHTML = "Login successful! Please complete your profile.";
+            document.querySelector("#loginMesageError").innerHTML = "";
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 1500);
           }
         })
         .catch((error) => {
           console.error("Firebase login error:", error);
           document.querySelector("#loginMesageSuccess").innerHTML = "";
-          document.querySelector("#loginMesageError").innerHTML = `Login Error: ${error.message}`;
+
+          let errorMessage = "";
+          if (error.code === 'auth/user-not-found') {
+            errorMessage = "No account found with this email. Please sign up first.";
+          } else if (error.code === 'auth/wrong-password') {
+            errorMessage = "Incorrect password. Please try again.";
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Please enter a valid email address.";
+          } else if (error.code === 'auth/user-disabled') {
+            errorMessage = "This account has been disabled. Please contact support.";
+          } else if (error.code === 'auth/too-many-requests') {
+            errorMessage = "Too many failed attempts. Please try again later.";
+          } else {
+            errorMessage = `Login Error: ${error.message}`;
+          }
+
+          document.querySelector("#loginMesageError").innerHTML = errorMessage;
         });
     } else {
       document.querySelector("#loginMesageSuccess").innerHTML = "";

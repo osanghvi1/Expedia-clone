@@ -39,13 +39,8 @@ export const Register = () => {
     };
   });
 
-  //  check if the user is exist of not
-  for (let i = 0; i <= user.length - 1; i++) {
-    if (user[i].number === number) {
-      exist = true;
-      break;
-    }
-  }
+  // Note: We only check Firebase for user existence, not local JSON server
+  // The exist variable is now only used for phone verification logic
 
   //  capture
   const handleRegisterUser = () => {
@@ -77,35 +72,48 @@ export const Register = () => {
       });
   };
 
-  // Handle email registration
+  // Handle email registration - Only checks Firebase, not local JSON server
   const handleEmailRegister = () => {
     console.log("Starting email registration process...");
     if (email && password && user_name) {
-      if (exist) {
-        document.querySelector("#loginMesageError").innerHTML = "User already exists";
-        document.querySelector("#loginMesageSuccess").innerHTML = ``;
-      } else {
-        console.log("Attempting to create Firebase user...");
-        document.querySelector("#loginMesageSuccess").innerHTML = "Creating account...";
-        document.querySelector("#loginMesageError").innerHTML = "";
+      console.log("Attempting to create Firebase user...");
+      document.querySelector("#loginMesageSuccess").innerHTML = "Creating account...";
+      document.querySelector("#loginMesageError").innerHTML = "";
 
-        createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
-            // Registration successful with Firebase
-            console.log("Firebase user created:", userCredential.user);
-            setCheck({ ...check, verify: true, otpVerify: true });
-            document.querySelector("#loginMesageSuccess").innerHTML = "Account created! Saving user data...";
-            document.querySelector("#loginMesageError").innerHTML = "";
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Registration successful with Firebase
+          console.log("Firebase user created:", userCredential.user);
+          setCheck({ ...check, verify: true, otpVerify: true });
+          document.querySelector("#loginMesageSuccess").innerHTML = "Account created! Saving user data...";
+          document.querySelector("#loginMesageError").innerHTML = "";
 
-            // Now save to our JSON server
-            handleRegisterUser();
-          })
-          .catch((error) => {
-            console.error("Firebase registration error:", error);
-            document.querySelector("#loginMesageSuccess").innerHTML = ``;
-            document.querySelector("#loginMesageError").innerHTML = `Firebase Error: ${error.message}`;
-          });
-      }
+          // Now save to our JSON server
+          handleRegisterUser();
+        })
+        .catch((error) => {
+          console.error("Firebase registration error:", error);
+          document.querySelector("#loginMesageSuccess").innerHTML = ``;
+
+          let errorMessage = "";
+          if (error.code === 'auth/email-already-in-use') {
+            errorMessage = "This email is already registered. Please try logging in instead or use a different email.";
+            // Optionally redirect to login after a delay
+            setTimeout(() => {
+              window.location = "/login";
+            }, 3000);
+          } else if (error.code === 'auth/invalid-email') {
+            errorMessage = "Please enter a valid email address.";
+          } else if (error.code === 'auth/weak-password') {
+            errorMessage = "Password is too weak. Please use a stronger password.";
+          } else if (error.code === 'auth/operation-not-allowed') {
+            errorMessage = "Email/password accounts are not enabled. Please contact support.";
+          } else {
+            errorMessage = `Registration Error: ${error.message}`;
+          }
+
+          document.querySelector("#loginMesageError").innerHTML = errorMessage;
+        });
     } else {
       document.querySelector("#loginMesageSuccess").innerHTML = ``;
       document.querySelector("#loginMesageError").innerHTML = "Please fill all fields";
@@ -156,13 +164,6 @@ export const Register = () => {
     if (number.length !== 10) {
       document.querySelector("#loginMesageSuccess").innerHTML = ``;
       document.querySelector("#loginMesageError").innerHTML = "Please enter a valid 10-digit mobile number";
-      document.querySelector("#nextButton").innerText = "Next";
-      return;
-    }
-
-    if (exist) {
-      document.querySelector("#loginMesageError").innerHTML = "User already exists";
-      document.querySelector("#loginMesageSuccess").innerHTML = ``;
       document.querySelector("#nextButton").innerText = "Next";
       return;
     }
