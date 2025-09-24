@@ -301,7 +301,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Original Team Lead**: Kumkum
 - **Team Members**: Ashish, Amit, Sagar Balsaraf, Sarim
-- **Enhanced By**: [Your Name] - Authentication system improvements and documentation
+- **Enhanced By**: Om Sanghvi - Authentication system improvements and documentation
 
 ## 🆘 Support
 
