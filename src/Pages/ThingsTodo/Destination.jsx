@@ -22,7 +22,7 @@ export const Destination = () => {
         setPlaces(response.data)
      console.log(response.data)
     });
-  },[])
+  },[place])
  
  
   return (

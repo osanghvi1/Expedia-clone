@@ -44,7 +44,7 @@ export const AllHotels = () => {
 
   useEffect(() => {
     dispatch(fetchingHotels(limit));
-  }, [limit]);
+  }, [limit, dispatch]);
 
   return (
     <>

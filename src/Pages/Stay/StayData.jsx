@@ -47,7 +47,7 @@ const StayData = () => {
       );
       console.log(filteredHotel);
     }
-  }, [data, selectedPriceRange]);
+  }, [data, selectedPriceRange, filteredHotel]);
 
 console.log(data)
   return (

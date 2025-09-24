@@ -32,7 +32,7 @@ const handlePriceChange = (e) => {
     setSearchParams(params);
 
     dispatch(fetchingHotels(sort, order,));
-  }, [sort, order]);
+  }, [sort, order, dispatch, setSearchParams]);
 
   return (
     <div>

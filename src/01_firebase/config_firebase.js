@@ -1,20 +1,28 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBlKHCdVfQvMRKQf2B5UqaLfDkwm6T1apo",
-  authDomain: "challo-ghume-fa22c.firebaseapp.com",
-  projectId: "challo-ghume-fa22c",
-  storageBucket: "challo-ghume-fa22c.appspot.com",
-  messagingSenderId: "411994731743",
-  appId: "1:411994731743:web:a02cec85eb6aa66ddbe56a",
-  measurementId: "G-5KYMV9KZ2D"
+  apiKey: "AIzaSyDFiSQjRUyIxm4vcA_jGMuCEtivu0b218I",
+  authDomain: "expedia-clone-local.firebaseapp.com",
+  projectId: "expedia-clone-local",
+  storageBucket: "expedia-clone-local.firebasestorage.app",
+  messagingSenderId: "967552090766",
+  appId: "1:967552090766:web:82c9683cb92990ebbfffdf",
+  measurementId: "G-3LCDN1BYEG"
 };
 
-// Initialize Firebase
-const firebase_app = initializeApp(firebaseConfig);
+console.log("Firebase config:", firebaseConfig);
 
-export default firebase_app
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+console.log("Firebase app initialized:", app.name);
+
+// eslint-disable-next-line no-unused-vars
+const analytics = getAnalytics(app);
+
+export default app;

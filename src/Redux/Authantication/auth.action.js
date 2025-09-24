@@ -71,8 +71,9 @@ export const fetch_users = (dispatch) => {
 
 export const login_user = (loginData) => (dispatch) => {
   dispatch(login_success(loginData));
-  // localStorage.setItem("MkuserData", JSON.stringify(loginData));
-  // localStorage.setItem("MkisAuth", JSON.stringify(true));
+  localStorage.setItem("MkuserData", JSON.stringify(loginData));
+  localStorage.setItem("MkisAuth", JSON.stringify(true));
+  console.log("User data saved to localStorage:", loginData);
 };
 
 export const logout_user = (dispatch) => {

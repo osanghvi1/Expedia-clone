@@ -2,7 +2,7 @@ import {
     Box,
     Flex,
     Text,
-    IconButton,
+    // IconButton,
     Button,
     Stack,
     Collapse,
@@ -12,14 +12,14 @@ import {
     PopoverTrigger,
     PopoverContent,
     useColorModeValue,
-    useBreakpointValue,
+    // useBreakpointValue,
     useDisclosure,
     Image,
     useColorMode
   } from '@chakra-ui/react';
   import {
-    HamburgerIcon,
-    CloseIcon,
+    // HamburgerIcon,
+    // CloseIcon,
     ChevronDownIcon,
     ChevronRightIcon,
     MoonIcon, SunIcon
@@ -31,11 +31,24 @@ import {
   import {MdOutlineFlight} from 'react-icons/md'
   import {AiFillCar} from 'react-icons/ai'
   import {Link as RouterLink} from 'react-router-dom'
-  
+  import { useSelector, useDispatch } from 'react-redux'
+  import { logout_user } from '../Redux/Authantication/auth.action'
+
   export default function Navbar() {
-    const { isOpen, onToggle } = useDisclosure();
+    const { isOpen } = useDisclosure();
     const { colorMode, toggleColorMode } = useColorMode();
     const myColor = useColorModeValue('light','dark')
+    const dispatch = useDispatch();
+
+    const { isAuth, activeUser } = useSelector((store) => ({
+      isAuth: store.LoginReducer.isAuth,
+      activeUser: store.LoginReducer.activeUser
+    }));
+
+    const handleLogout = () => {
+      dispatch(logout_user);
+      console.log("User logged out");
+    };
   
     return (
     
@@ -59,7 +72,7 @@ import {
           </Flex>
           <RouterLink to="/">
           <Flex flex={{ base: 100 }} justify={{ base: 'space-between', md: 'start' }}>
-            <Image src={myColor=='light'?'https://i.postimg.cc/QxksRNkQ/expedio-Logo.jpg':'https://i.postimg.cc/fRx4D7QH/logo3.png'}  alt='logo' width={{base:'350px',sm:'18%'}} />
+            <Image src={myColor==='light'?'https://i.postimg.cc/QxksRNkQ/expedio-Logo.jpg':'https://i.postimg.cc/fRx4D7QH/logo3.png'}  alt='logo' width={{base:'350px',sm:'18%'}} />
   
             <Flex display={{ base: 'none', md: 'flex' }} ml={6}>
               <DesktopNav />
@@ -93,11 +106,22 @@ import {
             <Box fontWeight={'500'} fontSize={{base:'16px',sm:'23px'}}  display={'flex'} >
                 <Icon mt={0.5} mr={1}   as={IoIosNotifications} />
             </Box>
-             <RouterLink to="/login">
-            <Box fontWeight={'500'}  fontSize={{base:'12px',sm:'16px'}}  mr={9} >
-                SignIn
-            </Box>
-            </RouterLink>
+             {isAuth && activeUser?.user_name ? (
+              <Box display={'flex'} alignItems={'center'} gap={4}>
+                <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}}>
+                  Hello, {activeUser.user_name}
+                </Box>
+                <Button size="sm" onClick={handleLogout} mr={4}>
+                  Logout
+                </Button>
+              </Box>
+            ) : (
+              <RouterLink to="/login">
+                <Box fontWeight={'500'} fontSize={{base:'12px',sm:'16px'}} mr={9}>
+                  SignIn
+                </Box>
+              </RouterLink>
+            )}
             <Button onClick={toggleColorMode}>
                 {colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
             </Button>
@@ -121,6 +145,7 @@ import {
   const DesktopNav = () => {
     const linkColor = useColorModeValue('gray.600', 'gray.200');
     const linkHoverColor = useColorModeValue('gray.800', 'white');
+    // eslint-disable-next-line no-unused-vars
     const popoverContentBgColor = useColorModeValue('white', 'gray.800');
   
     return (

@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { ReactNode } from 'react';
 
 import {
@@ -10,6 +11,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 
+// eslint-disable-next-line no-unused-vars
 const Logo = (props) => {
   return (
     <svg

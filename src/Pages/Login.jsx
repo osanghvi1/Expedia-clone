@@ -6,6 +6,7 @@ import {
   getAuth,
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { fetch_users, login_user } from "../Redux/Authantication/auth.action";
@@ -13,7 +14,10 @@ import { fetch_users, login_user } from "../Redux/Authantication/auth.action";
 const auth = getAuth(firebase_app);
 const state = {
   number: "",
+  email: "",
+  password: "",
   otp: "",
+  authType: "email", // 'email' or 'phone'
   verify: false,
 };
 
@@ -29,18 +33,65 @@ export const Login = () => {
     };
   });
 
-  const { number, otp, verify } = check;
+  const { number, email, password, otp, verify, authType } = check;
 
   let exist = false;
   let data = {};
 
   for (let i = 0; i <= user.length - 1; i++) {
-    if (user[i].number == number) {
+    if ((authType === 'phone' && user[i].number == number) ||
+        (authType === 'email' && user[i].email === email)) {
       exist = true;
       data = user[i];
       break;
     }
   }
+
+  // Handle email login
+  const handleEmailLogin = () => {
+    console.log("Starting email login process...");
+    if (email && password) {
+      console.log("Attempting Firebase login with email:", email);
+      document.querySelector("#loginMesageSuccess").innerHTML = "Signing in...";
+      document.querySelector("#loginMesageError").innerHTML = "";
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Login successful
+          console.log("Firebase login successful:", userCredential.user);
+
+          // Find user data from JSON server
+          const userData = user.find(u => u.email === email);
+          if (userData) {
+            console.log("Found user data:", userData);
+            dispatch(login_user(userData));
+            document.querySelector("#loginMesageSuccess").innerHTML = "Login successful! Redirecting...";
+            document.querySelector("#loginMesageError").innerHTML = "";
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 1500);
+          } else {
+            document.querySelector("#loginMesageSuccess").innerHTML = "";
+            document.querySelector("#loginMesageError").innerHTML = "User profile not found.";
+          }
+        })
+        .catch((error) => {
+          console.error("Firebase login error:", error);
+          document.querySelector("#loginMesageSuccess").innerHTML = "";
+          document.querySelector("#loginMesageError").innerHTML = `Login Error: ${error.message}`;
+        });
+    } else {
+      document.querySelector("#loginMesageSuccess").innerHTML = "";
+      document.querySelector("#loginMesageError").innerHTML = "Please enter email and password";
+    }
+  };
+
+  // Handle auth type change
+  const handleAuthTypeChange = (type) => {
+    setCheck({ ...state, authType: type });
+    document.querySelector("#loginMesageError").innerHTML = "";
+    document.querySelector("#loginMesageSuccess").innerHTML = "";
+  };
   // console.log(user)
   //
 
@@ -60,12 +111,14 @@ export const Login = () => {
   }
 
   function handleVerifyNumber() {
+    console.log("Starting phone login verification for number:", number);
     document.querySelector("#nextText").innerText = "Please wait...";
     onCapture();
     const phoneNumber = `+91${number}`;
     const appVerifier = window.recaptchaVerifier;
     if (number.length === 10) {
       if (exist) {
+        console.log("Sending OTP to:", phoneNumber);
         signInWithPhoneNumber(auth, phoneNumber, appVerifier)
           .then((confirmationResult) => {
             // SMS sent. Prompt user to type the code from the message, then sign the
@@ -88,9 +141,9 @@ export const Login = () => {
         document.querySelector("#loginMesageSuccess").innerHTML = ``;
         document.querySelector("#loginMesageError").innerHTML =
           "User does not exist Please Create Your Account !";
-          setInterval(() => {
+          setTimeout(() => {
             window.location="/register"
-          }, 1000);
+          }, 2000);
       }
       //
     } else {
@@ -136,7 +189,7 @@ export const Login = () => {
     if (isAuth) {
       window.location = "/";
     }
-  }, [isAuth]);
+  }, [isAuth, dispatch]);
 
   return (
     <>
@@ -149,41 +202,113 @@ export const Login = () => {
           <hr /><hr /><hr />
             <h1>SignIn</h1>
           </div>
+
+          {/* Auth type selection */}
           <div className="loginInputB">
-            <label htmlFor="">Enter Your Number</label>
-            <span>
-              <input
-                type="number"
-                readOnly={verify}
-                name="number"
-                value={number}
-                onChange={(e) => handleChangeMobile(e)}
-                placeholder="Number"
-              />
+            <label>Choose login method:</label>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
               <button
-                disabled={verify}
-                onClick={handleVerifyNumber}
-                id="nextText"
+                type="button"
+                onClick={() => handleAuthTypeChange('email')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: authType === 'email' ? '#0066cc' : '#ccc',
+                  color: authType === 'email' ? 'white' : 'black',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
               >
-                SignIn
+                Email
               </button>
-            </span>
-          </div>
-          {verify ? (
-            <div className="loginInputB">
-              <label htmlFor="">Enter Your OTP</label>
-              <span>
-                <input
-                  type="number"
-                  name="otp"
-                  value={otp}
-                  onChange={(e) => handleChangeMobile(e)}
-                />
-                <button onClick={verifyCode}>Continue</button>
-              </span>
+              <button
+                type="button"
+                onClick={() => handleAuthTypeChange('phone')}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: authType === 'phone' ? '#0066cc' : '#ccc',
+                  color: authType === 'phone' ? 'white' : 'black',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Phone Number
+              </button>
             </div>
-          ) : (
-            ""
+          </div>
+
+          {/* Email login form */}
+          {authType === 'email' && (
+            <>
+              <div className="loginInputB">
+                <label htmlFor="">Enter Your Email</label>
+                <span>
+                  <input
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={(e) => handleChangeMobile(e)}
+                    placeholder="Email"
+                  />
+                </span>
+              </div>
+              <div className="loginInputB">
+                <label htmlFor="">Enter Your Password</label>
+                <span>
+                  <input
+                    type="password"
+                    name="password"
+                    value={password}
+                    onChange={(e) => handleChangeMobile(e)}
+                    placeholder="Password"
+                  />
+                </span>
+              </div>
+              <div className="loginInputB">
+                <button onClick={handleEmailLogin}>Login with Email</button>
+              </div>
+            </>
+          )}
+
+          {/* Phone login form */}
+          {authType === 'phone' && (
+            <>
+              <div className="loginInputB">
+                <label htmlFor="">Enter Your Number</label>
+                <span>
+                  <input
+                    type="number"
+                    readOnly={verify}
+                    name="number"
+                    value={number}
+                    onChange={(e) => handleChangeMobile(e)}
+                    placeholder="Number"
+                  />
+                  <button
+                    disabled={verify}
+                    onClick={handleVerifyNumber}
+                    id="nextText"
+                  >
+                    SignIn
+                  </button>
+                </span>
+              </div>
+              {verify && (
+                <div className="loginInputB">
+                  <label htmlFor="">Enter Your OTP</label>
+                  <span>
+                    <input
+                      type="number"
+                      name="otp"
+                      value={otp}
+                      onChange={(e) => handleChangeMobile(e)}
+                    />
+                    <button onClick={verifyCode}>Continue</button>
+                  </span>
+                </div>
+              )}
+            </>
           )}
 
           <div className="loginTerms">
@@ -195,8 +320,8 @@ export const Login = () => {
             <p>Selecting this checkbox will keep you signed into your account on this device until you sign out. Do not select this on shared devices.</p>
             <h6>By signing in, I agree to the Expedia <span> Terms and Conditions</span>, <span>Privacy Statement</span> and <span>Expedia Rewards Terms and Conditions</span>.</h6>
           </div>
-          <h3 id="loginMesageError"></h3>
-          <h3 id="loginMesageSuccess"></h3>
+          <div id="loginMesageError"></div>
+          <div id="loginMesageSuccess"></div>
         </div>
       </div>
     </>

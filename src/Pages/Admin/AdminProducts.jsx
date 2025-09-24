@@ -43,7 +43,7 @@ export const AdminProducts = () => {
   //   console.log(limit);
   useEffect(() => {
     dispatch(fetchFlightProducts(limit));
-  }, [limit]);
+  }, [limit, dispatch]);
 
   return (
     <>
